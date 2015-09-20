@@ -160,13 +160,22 @@ object BlockMetaActor {
     } else {
       BlockType.ShapeBlock
     }
+    val oscillation = if(config.hasPath("oscillation")) {
+      val s = config.getString("oscillation")
+      if(s != BlockType.OscillationOcean && s != BlockType.OscillationPlant && s != BlockType.OscillationNone) {
+        throw new IllegalStateException(s"Block oscillation must be ${BlockType.OscillationOcean}, ${BlockType.OscillationPlant} or ${BlockType.OscillationNone}")
+      }
+      s
+    } else {
+      BlockType.OscillationNone
+    }
     val blockType = if(config.hasPath("faces")) {
       val faces = config.getIntList("faces")
       if(faces.size != 6) throw new IllegalStateException("There must be exactly 6 faces")
-      BlockType(faces.asScala.map(_ + texturePosition).asJava, shape, isObstacle, false)
+      BlockType(faces.asScala.map(_ + texturePosition).asJava, shape, isObstacle, false, oscillation)
     } else {
       /* Default is to assume only one texture for all faces */
-      BlockType(List(texturePosition,texturePosition,texturePosition,texturePosition,texturePosition,texturePosition).asJava, shape, isObstacle, false)
+      BlockType(List(texturePosition,texturePosition,texturePosition,texturePosition,texturePosition,texturePosition).asJava, shape, isObstacle, false, oscillation)
     }
     typeId -> blockType
   }
