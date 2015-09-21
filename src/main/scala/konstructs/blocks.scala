@@ -160,13 +160,27 @@ object BlockMetaActor {
     } else {
       BlockType.ShapeBlock
     }
+    val state = if(config.hasPath("state")) {
+      val s = config.getString("state")
+      if(s != BlockType.StateSolid && s != BlockType.StateGas && s != BlockType.StateFluid) {
+        throw new IllegalStateException(s"Block shape must be ${BlockType.StateSolid}, ${BlockType.StateGas} or ${BlockType.StateFluid}")
+      }
+      s
+    } else {
+      BlockType.StateSolid
+    }
+    val transparent = if(config.hasPath("transparent")) {
+      config.getBoolean("transparent")
+    } else {
+      false
+    }
     val blockType = if(config.hasPath("faces")) {
       val faces = config.getIntList("faces")
       if(faces.size != 6) throw new IllegalStateException("There must be exactly 6 faces")
-      BlockType(faces.asScala.map(_ + texturePosition).asJava, shape, isObstacle, false)
+      BlockType(faces.asScala.map(_ + texturePosition).asJava, shape, isObstacle, transparent, state)
     } else {
       /* Default is to assume only one texture for all faces */
-      BlockType(List(texturePosition,texturePosition,texturePosition,texturePosition,texturePosition,texturePosition).asJava, shape, isObstacle, false)
+      BlockType(List(texturePosition,texturePosition,texturePosition,texturePosition,texturePosition,texturePosition).asJava, shape, isObstacle, transparent, state)
     }
     typeId -> blockType
   }
@@ -195,7 +209,7 @@ object BlockMetaActor {
       val maxIndex = t._2.faces.asScala.max + 1
       val numTextures = maxIndex - t._2.faces.asScala.min
       val img = loadTexture(idString)
-      var transparent = false
+      var transparent = t._2.isTransparent
       for(i <- 0 until numTextures) {
         val texture = img.getSubimage(i * TextureSize, 0, TextureSize, TextureSize)
         if(isTransparent(texture)) transparent = true

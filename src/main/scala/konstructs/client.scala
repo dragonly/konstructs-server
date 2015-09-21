@@ -201,7 +201,7 @@ class Client(init: Init[WithinActorContext, ByteString, ByteString], universe: A
     val isObstacle = booleanToInt(t.isObstacle)
     val isTransparent = booleanToInt(t.isTransparent)
     val faces = t.faces.asScala
-    send(pipe, s"W,$w,${t.shape},$isObstacle,$isTransparent,${faces(0)},${faces(1)},${faces(2)},${faces(3)},${faces(4)},${faces(5)}")
+    send(pipe, s"W,$w,${t.shape},$isObstacle,$isTransparent,${t.state},${faces(0)},${faces(1)},${faces(2)},${faces(3)},${faces(4)},${faces(5)}")
   }
 
   def send(pipe: ActorRef, msg: ByteString) {

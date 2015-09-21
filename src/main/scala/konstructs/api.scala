@@ -13,11 +13,15 @@ import konstructs.Db
 /* Data structures */
 
 case class BlockType(faces: java.util.List[Int], shape: String, isObstacle: Boolean,
-  isTransparent: Boolean)
+  isTransparent: Boolean, state: String)
 
 object BlockType {
   val ShapeBlock = "block"
   val ShapePlant = "plant"
+
+  val StateSolid = "solid"
+  val StateGas = "gas"
+  val StateFluid = "fluid"
 }
 
 case class BlockTypeId(namespace: String, name: String)
