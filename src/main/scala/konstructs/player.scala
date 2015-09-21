@@ -287,33 +287,21 @@ class ChunkLoaderActor(client: ActorRef, db: ActorRef, position: Position) exten
   import DbActor._
   import PlayerActor._
 
-  var sentChunks = Map.empty[ChunkPosition, ChunkData]
+  var sentChunks = Set.empty[ChunkPosition]
   var requestedChunks = Set.empty[ChunkPosition]
   var chunksToSend = Seq.empty[ChunkPosition]
   var currentChunk = ChunkPosition(position)
   var visible = visibleChunks(currentChunk, ChunksVisible)
   var maxChunksToSend = 0
-  var centralChunks = neighbors(currentChunk)
+  var centralChunks = currentChunk.neighbours
 
   def visibleSentChunksNeighbours =
-    sentChunks flatMap {
-      case (position, data) =>
-        data.chunks(position).filter(visible(_))
+    sentChunks flatMap { position =>
+      position.neighbours.filter(visible(_))
     } toSet
 
-  def neighbors(chunk: ChunkPosition) =
-    Set(
-      chunk,
-      chunk.copy(p = chunk.p - 1),
-      chunk.copy(p = chunk.p + 1),
-      chunk.copy(q = chunk.q - 1),
-      chunk.copy(q = chunk.q + 1),
-      chunk.copy(k = chunk.k - 1),
-      chunk.copy(k = chunk.k + 1)
-    )
-
   def update() {
-    sentChunks = sentChunks filterKeys (sentChunks.keySet & visible)
+    sentChunks = sentChunks & visible
     requestedChunks = requestedChunks & visible
     val filtered = visibleSentChunksNeighbours ++ centralChunks
     val ordering = (filtered &~ requestedChunks).toArray
@@ -340,14 +328,14 @@ class ChunkLoaderActor(client: ActorRef, db: ActorRef, position: Position) exten
       if(chunk != currentChunk) {
         currentChunk = chunk
         visible = visibleChunks(currentChunk, ChunksVisible)
-        centralChunks = neighbors(currentChunk)
+        centralChunks = currentChunk.neighbours
         update()
         sendChunks()
       }
     case b: BlockList =>
       client ! b
-      sentChunks = sentChunks + (b.chunk -> b.data)
-      if(sentChunks.keySet == requestedChunks) {
+      sentChunks = sentChunks + b.chunk
+      if(sentChunks == requestedChunks) {
         update()
         sendChunks()
       }

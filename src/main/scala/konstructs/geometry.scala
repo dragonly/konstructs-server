@@ -39,6 +39,14 @@ case class ChunkPosition(p: Int, q: Int, k: Int) {
     val dk = k - c.k
     math.pow(dp*dp + dq*dq + dk*dk, 1d/2d)
   }
+  def neighbours = Set(
+    copy(p = p - 1),
+    copy(p = p + 1),
+    copy(q = q - 1),
+    copy(q = q + 1),
+    copy(k = k - 1),
+    copy(k = k + 1)
+  )
 }
 
 object ChunkPosition {
